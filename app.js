@@ -37,31 +37,21 @@ async function main() {
   await mongoose.connect(dbUrl);
 }
 
-// Smart Conditional Session Store Setup
-let store;
+// Ekdum direct aur foolproof configuration bina conditions ke loop ke
+const store = MongoStore.create({
+  mongoUrl: dbUrl,
+  crypto: {
+    secret: process.env.SECRET || "mysupersecretcode",
+  },
+  touchAfter: 24 * 3600,
+});
 
-if (process.env.NODE_ENV === "production") {
-  // Jab Render par live chalega, tab automatic Cloud MongoStore use hoga
-  store = MongoStore.create({
-    mongoUrl: dbUrl,
-    crypto: {
-      secret: process.env.SECRET || "mysupersecretcode",
-    },
-    touchAfter: 24 * 3600,
-  });
-
-  store.on("error", (err) => {
-    console.log("ERROR IN MONGO SESSION STORE: ", err);
-  });
-} else {
-  // Local system par (Node v24 ke crash se bachne ke liye) express ka default memory store use hoga
-  console.log("Running in development: Using local memory store.");
-  store = null; 
-}
+store.on("error", (err) => {
+  console.log("ERROR IN MONGO SESSION STORE: ", err);
+});
 
 const sessionOptions = {
-  // Agar store available hai toh use karega (Render par), nahi toh memory use karega (Local par)
-  ...(store && { store: store }), 
+  store: store, 
   secret: process.env.SECRET || "mysupersecretcode",
   resave: false,
   saveUninitialized: true,
