@@ -17,7 +17,7 @@ const LocalStrategy = require("passport-local");
 const User = require("./Models/user.js");
 
 // Purely Bulletproof Connect-Mongo Import Architecture
-const MongoStore = require("connect-mongo");
+const MongoStore = require("connect-mongo").default;
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
