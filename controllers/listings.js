@@ -1,7 +1,26 @@
 const Listing = require("../Models/listing.js");
 
 module.exports.index = async (req, res) => {
-  const allListings = await Listing.find({});
+  const { q, category } = req.query; // Search text 'q' aur Icon query 'category' pakdenge
+  let allListings;
+
+  if (q) {
+    // 1. Agar user ne search bar use kiya hai (Title, Country, ya Location match karega)
+    allListings = await Listing.find({
+      $or: [
+        { title: { $regex: q, $options: "i" } },
+        { location: { $regex: q, $options: "i" } },
+        { country: { $regex: q, $options: "i" } }
+      ]
+    });
+  } else if (category) {
+    // 2. Agar user ne kisi Category Icon par click kiya hai
+    allListings = await Listing.find({ category: category });
+  } else {
+    // 3. Agar kuch filter nahi hai, toh normal saari listings dikhao
+    allListings = await Listing.find({});
+  }
+
   res.render("listings/index.ejs", { allListings });
 };
 
@@ -35,8 +54,7 @@ module.exports.createListing = async (req, res, next) => {
 
   // ==================== FREE GEOCODING LOGIC (CREATE) ====================
   try {
-   // Pehle sirf location + country tha, ab hum ", India" ya "State" ka direct clear format de rhe hain
-let locationQuery = encodeURIComponent(`${newlisting.location}, ${newlisting.country}`);
+    let locationQuery = encodeURIComponent(`${newlisting.location}, ${newlisting.country}`);
     let response = await fetch(`https://nominatim.openstreetmap.org/search?q=${locationQuery}&format=json&limit=1`, {
       headers: { 'User-Agent': 'WanderLust-College-Project' }
     });
@@ -76,7 +94,6 @@ module.exports.renderEditForm = async (req, res) => {
 module.exports.updateListing = async (req, res) => {
   let { id } = req.params;
   
-  // 1. Pehle basic fields update kar lo
   let listing = await Listing.findByIdAndUpdate(id, { ...req.body.listing }, { new: true });
 
   // ==================== IMPROVED FREE GEOCODING LOGIC (UPDATE) ====================
@@ -93,7 +110,6 @@ module.exports.updateListing = async (req, res) => {
         coordinates: [parseFloat(data[0].lon), parseFloat(data[0].lat)]
       };
     } else if (!listing.geometry || !listing.geometry.type) {
-      // Agar API se kuch na mile aur database me pehle se geometry na ho, toh fallback lagao
       listing.geometry = { type: "Point", coordinates: [77.2090, 28.6139] };
     }
   } catch (err) {

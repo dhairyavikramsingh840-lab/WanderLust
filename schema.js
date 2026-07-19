@@ -11,6 +11,8 @@ module.exports.listingSchema = Joi.object({
       url: Joi.string().allow("", null),
       filename: Joi.string().allow("", null),
     }).allow("", null),
+    // Category validation yahan add kar di hai:
+    category: Joi.string().valid("Trending", "Rooms", "Iconic Cities", "Mountains", "Castles", "Amazing Pools", "Camping", "Farms", "Arctic", "Dome", "Boats").required()
   }).required(),
 });
 
