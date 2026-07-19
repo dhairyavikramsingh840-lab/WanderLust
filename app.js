@@ -11,11 +11,13 @@ const listingRouter = require("./routes/listing.js");
 const reviewRouter = require("./routes/review.js");
 const userRouter = require("./routes/user.js");
 const session = require("express-session");
-const MongoStore = require("connect-mongo"); 
 const flash = require("connect-flash");
 const passport =  require("passport");
 const LocalStrategy = require("passport-local");
 const User = require("./Models/user.js");
+
+// Purely Bulletproof Connect-Mongo Import Architecture
+const MongoStore = require("connect-mongo");
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
@@ -37,7 +39,7 @@ async function main() {
   await mongoose.connect(dbUrl);
 }
 
-// Ekdum direct aur foolproof configuration bina conditions ke loop ke
+// Global scope configuration strategy
 const store = MongoStore.create({
   mongoUrl: dbUrl,
   crypto: {
